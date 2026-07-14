@@ -329,6 +329,14 @@
     font-family: 'Poppins', Arial, sans-serif;
   }
 </style>
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-F8E40LTEFP"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-F8E40LTEFP');
+</script>
 </head>
 <body>
 
@@ -351,6 +359,7 @@
     if (val === LOCK_PASSWORD) {
       sessionStorage.setItem(LOCK_SESSION_KEY, "1");
       document.getElementById('lock-screen').style.display = 'none';
+      gtag('event', 'dashboard_login');
     } else {
       document.getElementById('lock-error').textContent = 'Incorrect password';
     }
