@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pelesin">
+<title>Pelesin — Financial Intelligence</title>
+<style>
+:root {
+  --bg: #050810;
+  --bg2: #0d1117;
+  --bg3: #161b22;
+  --border: #21262d;
+  --accent: #f0b429;
+  --accent2: #58a6ff;
+  --green: #3fb950;
+  --red: #f85149;
+  --text: #c9d1d9;
+  --text2: #8b949e;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: -apple-system, 'Segoe UI', sans-serif; min-height: 100vh; font-size: 14px; }
+
+/* LOGIN */
+#login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: radial-gradient(ellipse at center, #0d1117 0%, #050810 70%); }
+.login-box { text-align: center; padding: 40px 30px; background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; width: 300px; }
+.login-logo { font-size: 44px; font-weight: 900; letter-spacing: 6px; color: var(--accent); margin-bottom: 6px; text-shadow: 0 0 30px rgba(240,180,41,0.5); }
+.login-subtitle { color: var(--text2); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 30px; }
+.login-box input { width: 100%; padding: 13px 16px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 16px; text-align: center; letter-spacing: 4px; margin-bottom: 12px; outline: none; }
+.login-box input:focus { border-color: var(--accent); }
+.login-box button { width: 100%; padding: 13px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: opacity 0.2s; }
+.login-box button:active { opacity: 0.8; }
+#login-error { color: var(--red); font-size: 12px; margin-top: 10px; min-height: 16px; }
+
+/* MAIN APP */
+#app { display: none; flex-direction: column; min-height: 100vh; }
+
+/* HEADER */
+header { background: var(--bg3); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.header-brand { font-size: 20px; font-weight: 900; letter-spacing: 4px; color: var(--accent); }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.header-status { font-size: 10px; color: var(--green); letter-spacing: 1px; }
+.header-time { font-size: 11px; color: var(--text2); }
+
+/* TICKER */
+#ticker-bar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 7px 16px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+#ticker-bar::-webkit-scrollbar { display: none; }
+.ticker-item { display: inline-flex; align-items: center; gap: 6px; margin-right: 22px; font-size: 12px; }
+.ticker-name { color: var(--text2); font-weight: 700; font-size: 11px; }
+.ticker-price { color: var(--text); font-weight: 700; }
+.ticker-change.up { color: var(--green); }
+.ticker-change.down { color: var(--red); }
+
+/* TABS */
+.tab-nav { background: var(--bg3); border-bottom: 1px solid var(--border); display: flex; padding: 0 8px; }
+.tab-btn { flex: 1; padding: 11px 4px; background: none; border: none; color: var(--text2); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* TAB CONTENT */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+#tab-chat.active { display: flex; flex-direction: column; height: calc(100vh - 148px); }
+
+/* SECTION TITLE */
+.section-title { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text2); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+
+/* ALERT CARDS */
+.alert-card { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.25); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px; font-size: 13px; line-height: 1.45; }
+.alert-card.warning { background: rgba(240,180,41,0.08); border-color: rgba(240,180,41,0.25); }
+.alert-card.opportunity { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.25); }
+
+/* NEWS */
+#tab-news { padding: 12px; }
+.news-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.news-source { font-size: 10px; color: var(--accent2); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.news-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; line-height: 1.4; }
+.news-title a { color: inherit; text-decoration: none; }
+.news-title a:active { color: var(--accent); }
+.news-date { font-size: 11px; color: var(--text2); }
+.loading-msg { text-align: center; color: var(--text2); padding: 20px; font-size: 13px; }
+
+/* CHAT */
+#chat-messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.message { max-width: 88%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; }
+.message.user { background: var(--accent); color: #000; align-self: flex-end; font-weight: 600; border-bottom-right-radius: 4px; }
+.message.pelesin { background: var(--bg3); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 4px; }
+.msg-label { font-size: 10px; font-weight: 800; letter-spacing: 1px; color: var(--accent); margin-bottom: 5px; text-transform: uppercase; }
+.chat-input-area { padding: 10px; background: var(--bg3); border-top: 1px solid var(--border); display: flex; gap: 8px; }
+.chat-input-area input { flex: 1; padding: 11px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 22px; color: var(--text); font-size: 14px; outline: none; }
+.chat-input-area input:focus { border-color: var(--accent); }
+.send-btn { padding: 11px 18px; background: var(--accent); color: #000; border: none; border-radius: 22px; font-weight: 800; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.send-btn:active { opacity: 0.8; }
+
+/* WALLET */
+#tab-wallet { padding: 12px; }
+.wallet-input-area { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.field-label { font-size: 10px; color: var(--text2); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; display: block; margin-bottom: 6px; margin-top: 10px; }
+.field-label:first-child { margin-top: 0; }
+.wallet-input-area input, .wallet-input-area select { width: 100%; padding: 10px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; outline: none; }
+.wallet-input-area input:focus { border-color: var(--accent); }
+.wallet-input-area select { appearance: none; }
+.analyze-btn { width: 100%; padding: 12px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-weight: 800; font-size: 13px; cursor: pointer; margin-top: 12px; letter-spacing: 1px; }
+.wallet-result-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-bottom: 8px; }
+.wallet-result-card h4 { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+.balance-value { font-size: 22px; font-weight: 900; color: var(--accent); }
+.balance-usd { font-size: 13px; color: var(--text2); margin-top: 2px; }
+.tx-item { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.tx-item:last-child { border-bottom: none; }
+.tx-hash { color: var(--accent2); font-family: monospace; font-size: 11px; margin-bottom: 3px; }
+.tx-row { display: flex; justify-content: space-between; align-items: center; }
+.tx-value.in { color: var(--green); font-weight: 700; }
+.tx-value.out { color: var(--red); font-weight: 700; }
+.tx-date { color: var(--text2); font-size: 11px; }
+
+/* SPINNER */
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">PELESIN</div>
+    <div class="login-subtitle">Financial Intelligence Agent</div>
+    <input type="password" id="pass-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkLogin()">
+    <button onclick="checkLogin()">ENTER</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- API KEY SETUP (shown once after first login) -->
+<div id="setup-screen" style="display:none;align-items:center;justify-content:center;min-height:100vh;background:radial-gradient(ellipse at center,#0d1117 0%,#050810 70%)">
+  <div class="login-box">
+    <div class="login-logo" style="font-size:28px;letter-spacing:3px">SETUP</div>
+    <div class="login-subtitle">One-time API key setup</div>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;line-height:1.5">Enter your Anthropic API key.<br>Stored only on this device.</p>
+    <input type="text" id="key-input" placeholder="sk-ant-api03-..." style="letter-spacing:0;font-size:12px;text-align:left" onkeydown="if(event.key==='Enter')saveKey()">
+    <button onclick="saveKey()">SAVE & START</button>
+    <div id="key-error"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+
+  <header>
+    <div class="header-brand">PELESIN</div>
+    <div class="header-right">
+      <div class="header-time" id="header-time"></div>
+      <div class="header-status">● LIVE</div>
+    </div>
+  </header>
+
+  <div id="ticker-bar">
+    <span style="color:var(--text2);font-size:11px"><span class="spinner"></span>Loading markets...</span>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('news', this)">News</button>
+    <button class="tab-btn" onclick="showTab('chat', this)">Chat</button>
+    <button class="tab-btn" onclick="showTab('wallet', this)">Wallet</button>
+  </nav>
+
+  <!-- NEWS TAB -->
+  <div id="tab-news" class="tab-content active">
+    <div style="padding:12px">
+      <div class="section-title">Pelesin Alerts</div>
+      <div id="alerts-container"><div class="loading-msg"><span class="spinner"></span>Analyzing markets...</div></div>
+      <div class="section-title" style="margin-top:16px">Latest News</div>
+      <div id="news-container"><div class="loading-msg"><span class="spinner"></span>Loading news...</div></div>
+    </div>
+  </div>
+
+  <!-- CHAT TAB -->
+  <div id="tab-chat" class="tab-content">
+    <div id="chat-messages">
+      <div class="message pelesin">
+        <div class="msg-label">Pelesin</div>
+        Ready. I watch the markets so you don't have to. Ask me anything — crypto, stocks, your portfolio, what to watch out for. I'll give you straight answers.
+      </div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="user-input" placeholder="Ask Pelesin..." onkeydown="if(event.key==='Enter')sendMessage()">
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- WALLET TAB -->
+  <div id="tab-wallet" class="tab-content">
+    <div style="padding:12px">
+      <div class="wallet-input-area">
+        <span class="field-label">Blockchain</span>
+        <select id="chain-select">
+          <option value="eth">Ethereum (ETH)</option>
+          <option value="btc">Bitcoin (BTC)</option>
+        </select>
+        <span class="field-label">Wallet Address</span>
+        <input type="text" id="wallet-address" placeholder="0x... or bc1...">
+        <button class="analyze-btn" onclick="checkWallet()">ANALYZE WALLET</button>
+      </div>
+      <div id="wallet-results"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PASSWORD = 'Pelesin2026';
+let ANTHROPIC_KEY = localStorage.getItem('pelesin_key') || '';
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────────
+function checkLogin() {
+  const val = document.getElementById('pass-input').value;
+  if (val === PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    if (!ANTHROPIC_KEY) {
+      document.getElementById('setup-screen').style.display = 'flex';
+    } else {
+      document.getElementById('app').style.display = 'flex';
+      initApp();
+    }
+  } else {
+    document.getElementById('login-error').textContent = 'Incorrect password';
+    document.getElementById('pass-input').value = '';
+    setTimeout(() => document.getElementById('login-error').textContent = '', 2500);
+  }
+}
+
+function saveKey() {
+  const key = document.getElementById('key-input').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    document.getElementById('key-error').textContent = 'Invalid key format';
+    return;
+  }
+  ANTHROPIC_KEY = key;
+  localStorage.setItem('pelesin_key', key);
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  initApp();
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────────
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── CLOCK ──────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('header-time').textContent =
+    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── MARKET DATA (CoinGecko free) ───────────────────────────────────────────────
+let lastMarketData = null;
+
+async function loadMarketData() {
+  try {
+    const ids = 'bitcoin,ethereum,solana,binancecoin,ripple,cardano,dogecoin';
+    const res = await fetch(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`
+    );
+    if (!res.ok) throw new Error('rate limited');
+    const data = await res.json();
+    lastMarketData = data;
+
+    const labels = {
+      bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL',
+      binancecoin: 'BNB', ripple: 'XRP', cardano: 'ADA', dogecoin: 'DOGE'
+    };
+
+    let html = '';
+    for (const [id, info] of Object.entries(data)) {
+      const sym = labels[id] || id.toUpperCase();
+      const price = info.usd;
+      const change = info.usd_24h_change || 0;
+      const dir = change >= 0 ? 'up' : 'down';
+      const arrow = change >= 0 ? '▲' : '▼';
+      html += `<span class="ticker-item">
+        <span class="ticker-name">${sym}</span>
+        <span class="ticker-price">$${fmtPrice(price)}</span>
+        <span class="ticker-change ${dir}">${arrow}${Math.abs(change).toFixed(2)}%</span>
+      </span>`;
+    }
+    document.getElementById('ticker-bar').innerHTML = html;
+    return data;
+  } catch (e) {
+    document.getElementById('ticker-bar').innerHTML =
+      '<span style="color:var(--text2);font-size:11px">Market data temporarily unavailable — retrying...</span>';
+    return null;
+  }
+}
+
+function fmtPrice(p) {
+  if (p >= 10000) return p.toLocaleString('en-US', { maximumFractionDigits: 0 });
+  if (p >= 1000)  return p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (p >= 1)     return p.toFixed(4);
+  return p.toFixed(6);
+}
+
+// ── NEWS (rss2json proxy) ──────────────────────────────────────────────────────
+async function loadNews() {
+  const feeds = [
+    { url: 'https://cointelegraph.com/rss', source: 'CoinTelegraph' },
+    { url: 'https://feeds.feedburner.com/CoinDesk', source: 'CoinDesk' },
+    { url: 'https://finance.yahoo.com/news/rssindex', source: 'Yahoo Finance' },
+  ];
+
+  let all = [];
+  for (const feed of feeds) {
+    try {
+      const r = await fetch(
+        `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}&count=6`
+      );
+      const d = await r.json();
+      if (d.items) all = all.concat(d.items.map(i => ({ ...i, source: feed.source })));
+    } catch (_) {}
+  }
+
+  all.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+  if (!all.length) {
+    document.getElementById('news-container').innerHTML =
+      '<div class="loading-msg">Could not load news feeds</div>';
+    return [];
+  }
+
+  document.getElementById('news-container').innerHTML = all.slice(0, 18).map(item => `
+    <div class="news-card">
+      <div class="news-source">${item.source}</div>
+      <div class="news-title"><a href="${item.link}" target="_blank">${item.title}</a></div>
+      <div class="news-date">${timeAgo(new Date(item.pubDate))}</div>
+    </div>`).join('');
+
+  return all;
+}
+
+function timeAgo(date) {
+  const s = Math.floor((Date.now() - date) / 1000);
+  if (s < 3600)  return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return Math.floor(s / 86400) + 'd ago';
+}
+
+// ── AI ALERTS ─────────────────────────────────────────────────────────────────
+async function generateAlerts(marketData, newsItems) {
+  try {
+    let mktSummary = '';
+    if (marketData) {
+      for (const [id, info] of Object.entries(marketData)) {
+        const chg = (info.usd_24h_change || 0).toFixed(2);
+        mktSummary += `${id}: $${fmtPrice(info.usd)} (${chg}% 24h)\n`;
+      }
+    }
+
+    const headlines = newsItems.slice(0, 12).map(n => n.title).join('\n');
+
+    const prompt = `Current crypto market data:\n${mktSummary}\nLatest news headlines:\n${headlines}\n\nGenerate exactly 3 financial alerts for today. Mix of risks, warnings, and opportunities. Each alert is 1-2 sentences max. Return ONLY a JSON array like: [{"type":"danger","text":"..."},{"type":"warning","text":"..."},{"type":"opportunity","text":"..."}]`;
+
+    const response = await callClaude(
+      prompt,
+      'You are Pelesin, a sharp financial intelligence agent. Generate brief, specific market alerts. Return only valid JSON.'
+    );
+
+    const match = response.match(/\[[\s\S]*?\]/);
+    if (match) {
+      const alerts = JSON.parse(match[0]);
+      document.getElementById('alerts-container').innerHTML = alerts.map(a => {
+        const cls = a.type === 'opportunity' ? 'opportunity' : a.type === 'warning' ? 'warning' : '';
+        const icon = a.type === 'opportunity' ? '💡' : a.type === 'warning' ? '⚠️' : '🔴';
+        return `<div class="alert-card ${cls}">${icon} ${a.text}</div>`;
+      }).join('');
+    }
+  } catch (e) {
+    document.getElementById('alerts-container').innerHTML =
+      '<div class="loading-msg">Alerts unavailable — check API key</div>';
+  }
+}
+
+// ── CHAT ───────────────────────────────────────────────────────────────────────
+const chatHistory = [];
+
+async function sendMessage() {
+  const input = document.getElementById('user-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  input.value = '';
+  appendMsg('user', text);
+
+  const el = appendMsg('pelesin', '<span class="spinner"></span>');
+  chatHistory.push({ role: 'user', content: text });
+
+  try {
+    const reply = await callClaude(null, null, chatHistory);
+    chatHistory.push({ role: 'assistant', content: reply });
+    el.innerHTML = `<div class="msg-label">Pelesin</div>${fmtText(reply)}`;
+  } catch (e) {
+    el.innerHTML = `<div class="msg-label">Pelesin</div>Error: ${e.message}`;
+  }
+
+  const msgs = document.getElementById('chat-messages');
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendMsg(role, content) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  if (role === 'pelesin') {
+    div.innerHTML = content;
+  } else {
+    div.textContent = content;
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function fmtText(t) {
+  return t
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>');
+}
+
+// ── WALLET CHECKER ─────────────────────────────────────────────────────────────
+async function checkWallet() {
+  const address = document.getElementById('wallet-address').value.trim();
+  const chain   = document.getElementById('chain-select').value;
+
+  if (!address) {
+    document.getElementById('wallet-results').innerHTML =
+      '<div class="loading-msg">Enter a wallet address first</div>';
+    return;
+  }
+
+  document.getElementById('wallet-results').innerHTML =
+    '<div class="loading-msg"><span class="spinner"></span>Fetching wallet data...</div>';
+
+  try {
+    let txData = [], balance = null, balanceUSD = null;
+
+    if (chain === 'eth') {
+      const [txRes, balRes, priceRes] = await Promise.all([
+        fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&page=1&offset=15&sort=desc`),
+        fetch(`https://api.etherscan.io/api?module=account&action=balance&address=${address}&tag=latest`),
+        fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd')
+      ]);
+
+      const [txJson, balJson, priceJson] = await Promise.all([txRes.json(), balRes.json(), priceRes.json()]);
+
+      if (txJson.status === '1') txData = txJson.result;
+      if (balJson.status === '1') {
+        balance = (parseInt(balJson.result) / 1e18).toFixed(6);
+        const ethPrice = priceJson?.ethereum?.usd || 0;
+        balanceUSD = (parseFloat(balance) * ethPrice).toFixed(2);
+      }
+
+    } else {
+      const res = await fetch(`https://blockchain.info/rawaddr/${address}?limit=15&cors=true`);
+      const data = await res.json();
+      const btcPrice = lastMarketData?.bitcoin?.usd || 0;
+      balance = (data.final_balance / 1e8).toFixed(8);
+      balanceUSD = (parseFloat(balance) * btcPrice).toFixed(2);
+      txData = (data.txs || []).slice(0, 15).map(tx => ({
+        hash: tx.hash,
+        rawValue: tx.result,
+        timeStamp: tx.time,
+        to: tx.result > 0 ? address : '',
+        from: tx.result < 0 ? address : '',
+        value: Math.abs(tx.result).toString(),
+        isBTC: true
+      }));
+    }
+
+    let html = '';
+
+    if (balance !== null) {
+      html += `<div class="wallet-result-card">
+        <h4>Balance</h4>
+        <div class="balance-value">${balance} ${chain.toUpperCase()}</div>
+        ${balanceUSD ? `<div class="balance-usd">≈ $${parseFloat(balanceUSD).toLocaleString('en-US', {minimumFractionDigits:2})} USD</div>` : ''}
+      </div>`;
+    }
+
+    if (txData.length > 0) {
+      const txRows = txData.slice(0, 10).map(tx => {
+        let val, isIn, date;
+        if (tx.isBTC) {
+          val = (Math.abs(parseInt(tx.value)) / 1e8).toFixed(6) + ' BTC';
+          isIn = parseInt(tx.rawValue) > 0;
+        } else {
+          val = (parseInt(tx.value) / 1e18).toFixed(5) + ' ETH';
+          isIn = tx.to?.toLowerCase() === address.toLowerCase();
+        }
+        date = new Date(parseInt(tx.timeStamp) * 1000).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+        return `<div class="tx-item">
+          <div class="tx-hash">${tx.hash.substring(0, 18)}...</div>
+          <div class="tx-row">
+            <span class="tx-value ${isIn ? 'in' : 'out'}">${isIn ? '+' : '-'}${val}</span>
+            <span class="tx-date">${date}</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      html += `<div class="wallet-result-card">
+        <h4>Recent Transactions</h4>
+        ${txRows}
+      </div>`;
+    }
+
+    document.getElementById('wallet-results').innerHTML =
+      html || '<div class="loading-msg">No data found for this address</div>';
+
+    // Pelesin AI analysis
+    if (txData.length > 0) {
+      const analysisCard = document.createElement('div');
+      analysisCard.className = 'wallet-result-card';
+      analysisCard.innerHTML = `<h4>Pelesin Analysis</h4><div class="loading-msg"><span class="spinner"></span>Analyzing...</div>`;
+      document.getElementById('wallet-results').appendChild(analysisCard);
+
+      const txSummary = txData.slice(0, 6).map(tx => {
+        if (tx.isBTC) {
+          const isIn = parseInt(tx.rawValue) > 0;
+          return `${isIn ? 'Received' : 'Sent'} ${(Math.abs(parseInt(tx.value)) / 1e8).toFixed(6)} BTC`;
+        }
+        const isIn = tx.to?.toLowerCase() === address.toLowerCase();
+        return `${isIn ? 'Received' : 'Sent'} ${(parseInt(tx.value) / 1e18).toFixed(5)} ETH`;
+      }).join('; ');
+
+      try {
+        const analysis = await callClaude(
+          `Wallet address: ${address}\nChain: ${chain.toUpperCase()}\nBalance: ${balance} ${chain.toUpperCase()}${balanceUSD ? ` (~$${balanceUSD} USD)` : ''}\nRecent activity: ${txSummary}\n\nAnalyze this wallet. Identify: activity patterns, risk signals, potential opportunities, anything notable. Be specific and direct. 3-5 sentences.`,
+          'You are Pelesin, a financial intelligence agent specializing in on-chain crypto analysis. Give direct, specific analysis — no generic statements.'
+        );
+        analysisCard.innerHTML = `<h4>Pelesin Analysis</h4><div style="font-size:13px;line-height:1.55">${fmtText(analysis)}</div>`;
+      } catch (e) {
+        analysisCard.innerHTML = `<h4>Pelesin Analysis</h4><div class="loading-msg">Analysis unavailable</div>`;
+      }
+    }
+
+  } catch (e) {
+    document.getElementById('wallet-results').innerHTML =
+      `<div class="loading-msg">Error fetching wallet: ${e.message}</div>`;
+  }
+}
+
+// ── CLAUDE API ─────────────────────────────────────────────────────────────────
+async function callClaude(prompt, system, messages) {
+  const sys = system || `You are Pelesin, a sharp and direct financial intelligence agent. You specialize in:
+- Crypto markets: Bitcoin, Ethereum, Solana, altcoins, DeFi
+- Stock markets: US equities, indices (S&P 500, NASDAQ, Dow), individual stocks
+- Macro economics: interest rates, inflation, global markets
+- On-chain analysis: wallet activity, transaction patterns
+
+Your style: direct, specific, actionable. No fluff, no generic disclaimers. Give real opinions and real analysis. Warn about risks clearly. Flag opportunities. The user is an entrepreneur in the DMV area who runs a food vending business and trades crypto and stocks.`;
+
+  const msgs = messages || [{ role: 'user', content: prompt }];
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 1024,
+      system: sys,
+      messages: msgs
+    })
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `API error ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.content[0].text;
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────────
+async function initApp() {
+  updateClock();
+  setInterval(updateClock, 30000);
+
+  const [marketData, newsItems] = await Promise.all([
+    loadMarketData(),
+    loadNews()
+  ]);
+
+  generateAlerts(marketData || {}, newsItems || []);
+
+  // Refresh market data every 60s
+  setInterval(loadMarketData, 60000);
+}
+</script>
+</body>
+</html>
